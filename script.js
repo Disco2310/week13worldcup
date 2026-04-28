@@ -4,6 +4,8 @@ const OWNER_UNLOCK_KEY = "wc16_owner_unlocked_v1";
 // Note: this is not secure security (PIN is in client JS). It prevents casual edits.
 const OWNER_PIN = "01279";
 
+let OWNER_UNLOCKED = false;
+
 const EXAMPLE_TEAMS = [
   "Algarve",
   "Catalunya",
@@ -458,27 +460,35 @@ function toast(message) {
   setTimeout(() => el.remove(), 1750);
 }
 
-function isOwnerUnlocked() {
+function loadOwnerUnlocked() {
+  let unlocked = false;
   try {
-    return localStorage.getItem(OWNER_UNLOCK_KEY) === "1";
+    unlocked = localStorage.getItem(OWNER_UNLOCK_KEY) === "1";
   } catch {
-    return false;
+    unlocked = false;
   }
+  OWNER_UNLOCKED = unlocked;
+  document.documentElement.dataset.owner = unlocked ? "1" : "0";
+}
+
+function isOwnerUnlocked() {
+  return OWNER_UNLOCKED;
 }
 
 function setOwnerUnlocked(unlocked) {
+  OWNER_UNLOCKED = unlocked;
+  document.documentElement.dataset.owner = unlocked ? "1" : "0";
   try {
     if (unlocked) localStorage.setItem(OWNER_UNLOCK_KEY, "1");
     else localStorage.removeItem(OWNER_UNLOCK_KEY);
   } catch {
-    // ignore
+    // If storage is blocked (common on some file:// / privacy setups),
+    // we still keep the session unlocked in-memory.
   }
-  document.documentElement.dataset.owner = unlocked ? "1" : "0";
 }
 
 function applyOwnerModeButton(dom) {
   const unlocked = isOwnerUnlocked();
-  setOwnerUnlocked(unlocked);
   if (!dom.btnOwnerMode) return;
 
   dom.btnOwnerMode.textContent = unlocked ? "Lock edits" : "Owner mode";
@@ -577,6 +587,8 @@ function wireUI(dom, state) {
 
 function init() {
   const dom = getDOM();
+  loadOwnerUnlocked();
+  applyOwnerModeButton(dom);
 
   const fromHash = decodeStateFromHash();
   const fromStorage = loadState();
@@ -586,7 +598,6 @@ function init() {
   saveState(state);
 
   wireUI(dom, state);
-  applyOwnerModeButton(dom);
   renderAll(dom, state);
 
   window.addEventListener("hashchange", () => {
