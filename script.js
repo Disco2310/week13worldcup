@@ -311,6 +311,7 @@ function renderRound(dom, state, roundKey, containerEl) {
   for (let i = 0; i < round.length; i++) {
     const matchData = round[i];
     const node = dom.matchTemplate.content.firstElementChild.cloneNode(true);
+    node.dataset.round = roundKey;
 
     const btn0 = node.querySelector('button[data-side="0"]');
     const btn1 = node.querySelector('button[data-side="1"]');
@@ -341,20 +342,20 @@ function renderRound(dom, state, roundKey, containerEl) {
     const winner = matchData.winner;
     const applyWinnerStyles = () => {
       node.classList.remove("isWinner");
+      btn0.classList.remove("isWinnerPick");
+      btn1.classList.remove("isWinnerPick");
       btn0.classList.remove("isLoser");
       btn1.classList.remove("isLoser");
-      btn0.style.outline = "";
-      btn1.style.outline = "";
 
       if (winner === 0) {
         node.classList.add("isWinner");
+        btn0.classList.add("isWinnerPick");
         btn1.classList.add("isLoser");
-        btn0.style.outline = "2px solid rgba(52,211,153,.35)";
         statusEl.textContent = "Winner: " + (t0 || "—");
       } else if (winner === 1) {
         node.classList.add("isWinner");
         btn0.classList.add("isLoser");
-        btn1.style.outline = "2px solid rgba(52,211,153,.35)";
+        btn1.classList.add("isWinnerPick");
         statusEl.textContent = "Winner: " + (t1 || "—");
       } else {
         statusEl.textContent = "";

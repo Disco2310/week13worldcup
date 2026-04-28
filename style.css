@@ -211,7 +211,7 @@ body{
 .bracket{
   margin-top: 18px;
   display:grid;
-  grid-template-columns: 1.2fr 1fr 1fr 1fr .9fr;
+  grid-template-columns: 1.4fr 1.15fr 1.15fr 1.15fr .95fr;
   gap: 14px;
   align-items:start;
 }
@@ -277,6 +277,12 @@ body{
 .teamBtn--away{text-align:right; justify-content:flex-end;}
 .teamBtn[disabled]{cursor:not-allowed; opacity:.6}
 .teamBtn__name{font-weight: 700; font-size: 13px; letter-spacing:.1px}
+.teamBtn__name{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 .teamBtn--empty .teamBtn__name{font-weight: 600; color: rgba(255,255,255,.55)}
 
 .match__footer{
@@ -300,12 +306,32 @@ body{
 }
 .linkBtn:hover{background: rgba(255,255,255,.08)}
 
-.isWinner{
-  background: linear-gradient(180deg, rgba(52,211,153,.25), rgba(52,211,153,.10));
+/* Winner/loser styling per round */
+.match .teamBtn.isWinnerPick{
+  border-radius: 10px;
+  outline: 1px solid rgba(255,255,255,.08);
 }
-.isWinner .teamBtn__name{color: rgba(255,255,255,.96)}
+.match .teamBtn.isLoser{
+  border-radius: 10px;
+  outline: 1px solid rgba(255,255,255,.06);
+  opacity: .9;
+}
 
-.isLoser{opacity:.65}
+.match[data-round="r16"].isWinner{background: linear-gradient(180deg, rgba(245,196,0,.20), rgba(245,196,0,.08));}
+.match[data-round="r16"] .teamBtn.isWinnerPick{background: rgba(245,196,0,.14);}
+.match[data-round="r16"] .teamBtn.isLoser{background: rgba(251,113,133,.10); color: rgba(255,255,255,.86);}
+
+.match[data-round="qf"].isWinner{background: linear-gradient(180deg, rgba(52,211,153,.22), rgba(52,211,153,.09));}
+.match[data-round="qf"] .teamBtn.isWinnerPick{background: rgba(52,211,153,.12);}
+.match[data-round="qf"] .teamBtn.isLoser{background: rgba(251,113,133,.10); color: rgba(255,255,255,.86);}
+
+.match[data-round="sf"].isWinner{background: linear-gradient(180deg, rgba(96,165,250,.22), rgba(96,165,250,.09));}
+.match[data-round="sf"] .teamBtn.isWinnerPick{background: rgba(96,165,250,.12);}
+.match[data-round="sf"] .teamBtn.isLoser{background: rgba(251,113,133,.10); color: rgba(255,255,255,.86);}
+
+.match[data-round="f"].isWinner{background: linear-gradient(180deg, rgba(167,139,250,.22), rgba(167,139,250,.09));}
+.match[data-round="f"] .teamBtn.isWinnerPick{background: rgba(167,139,250,.12);}
+.match[data-round="f"] .teamBtn.isLoser{background: rgba(251,113,133,.10); color: rgba(255,255,255,.86);}
 
 .badge{
   border: 1px solid var(--stroke);
