@@ -114,6 +114,7 @@ function getDOM() {
   return {
     brandLogo: document.getElementById("brandLogo"),
     teamsCard: document.getElementById("teamsCard"),
+    btnOwnerMode: document.getElementById("btnOwnerMode"),
     btnToggleTeams: document.getElementById("btnToggleTeams"),
     teamsGrid: document.getElementById("teamsGrid"),
     btnFillExample: document.getElementById("btnFillExample"),
