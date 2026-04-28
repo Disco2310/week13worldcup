@@ -2,7 +2,7 @@ const STORAGE_KEY = "wc16_tracker_v1";
 const OWNER_UNLOCK_KEY = "wc16_owner_unlocked_v1";
 
 // Note: this is not secure security (PIN is in client JS). It prevents casual edits.
-const OWNER_PIN = "4816";
+const OWNER_PIN = "01279";
 
 const EXAMPLE_TEAMS = [
   "Algarve",
