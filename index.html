@@ -14,14 +14,15 @@
           <h1 class="title">The ClioSoF Week 13 World Cup</h1>
         </div>
         <div class="header__actions">
-          <button id="btnResetAll" class="btn btn--ghost" type="button" title="Clear teams + bracket">Reset</button>
+          <button id="btnOwnerMode" class="btn btn--ghost" type="button" title="Unlock edit mode">Owner mode</button>
+          <button id="btnResetAll" class="btn btn--ghost" type="button" title="Clear teams + bracket" data-owner-only>Reset</button>
           <button id="btnShare" class="btn btn--ghost" type="button" title="Copy a share link">Copy link</button>
         </div>
       </div>
     </header>
 
     <main class="container">
-      <section class="card" id="teamsCard">
+      <section class="card" id="teamsCard" data-owner-only>
         <div class="card__header">
           <h2>Teams</h2>
           <div class="card__actions">
@@ -103,17 +104,17 @@
     <template id="matchTemplate">
       <div class="match">
         <div class="match__teams">
-          <button class="teamBtn teamBtn--home" type="button" data-side="0">
+          <button class="teamBtn teamBtn--home" type="button" data-side="0" data-owner-disable>
             <span class="teamBtn__name">Team A</span>
           </button>
           <div class="match__vs">vs</div>
-          <button class="teamBtn teamBtn--away" type="button" data-side="1">
+          <button class="teamBtn teamBtn--away" type="button" data-side="1" data-owner-disable>
             <span class="teamBtn__name">Team B</span>
           </button>
         </div>
         <div class="match__footer">
           <div class="match__status" data-role="status">Pick winner</div>
-          <button class="linkBtn" type="button" data-role="clear">Clear</button>
+          <button class="linkBtn" type="button" data-role="clear" data-owner-only>Clear</button>
         </div>
       </div>
     </template>

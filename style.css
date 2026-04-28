@@ -341,3 +341,13 @@ body{
   flex-wrap: wrap;
 }
 .dot{opacity:.6}
+
+/* Owner edit mode gate (client-side, casual protection) */
+:root[data-owner="0"] [data-owner-only]{
+  display:none !important;
+}
+:root[data-owner="0"] [data-owner-disable]{
+  pointer-events:none !important;
+  filter: grayscale(.15);
+  opacity:.8;
+}

@@ -1,4 +1,8 @@
 const STORAGE_KEY = "wc16_tracker_v1";
+const OWNER_UNLOCK_KEY = "wc16_owner_unlocked_v1";
+
+// Note: this is not secure security (PIN is in client JS). It prevents casual edits.
+const OWNER_PIN = "4816";
 
 const EXAMPLE_TEAMS = [
   "Algarve",
@@ -453,7 +457,56 @@ function toast(message) {
   setTimeout(() => el.remove(), 1750);
 }
 
+function isOwnerUnlocked() {
+  try {
+    return localStorage.getItem(OWNER_UNLOCK_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setOwnerUnlocked(unlocked) {
+  try {
+    if (unlocked) localStorage.setItem(OWNER_UNLOCK_KEY, "1");
+    else localStorage.removeItem(OWNER_UNLOCK_KEY);
+  } catch {
+    // ignore
+  }
+  document.documentElement.dataset.owner = unlocked ? "1" : "0";
+}
+
+function applyOwnerModeButton(dom) {
+  const unlocked = isOwnerUnlocked();
+  setOwnerUnlocked(unlocked);
+  if (!dom.btnOwnerMode) return;
+
+  dom.btnOwnerMode.textContent = unlocked ? "Lock edits" : "Owner mode";
+  dom.btnOwnerMode.title = unlocked ? "Lock and hide editing controls" : "Unlock edit mode";
+}
+
 function wireUI(dom, state) {
+  if (dom.btnOwnerMode) {
+    dom.btnOwnerMode.addEventListener("click", () => {
+      const unlocked = isOwnerUnlocked();
+      if (unlocked) {
+        setOwnerUnlocked(false);
+        applyOwnerModeButton(dom);
+        toast("Edit mode locked.");
+        return;
+      }
+
+      const pin = window.prompt("Enter owner PIN to unlock edit mode:");
+      if (pin == null) return;
+      if (pin === OWNER_PIN) {
+        setOwnerUnlocked(true);
+        applyOwnerModeButton(dom);
+        toast("Edit mode unlocked.");
+      } else {
+        toast("Incorrect PIN.");
+      }
+    });
+  }
+
   if (dom.btnToggleTeams && dom.teamsCard) {
     dom.btnToggleTeams.addEventListener("click", () => {
       state.ui.teamsCollapsed = !state.ui.teamsCollapsed;
@@ -532,6 +585,7 @@ function init() {
   saveState(state);
 
   wireUI(dom, state);
+  applyOwnerModeButton(dom);
   renderAll(dom, state);
 
   window.addEventListener("hashchange", () => {

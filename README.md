@@ -25,3 +25,10 @@ npx serve .
 - **Copy link** generates a share URL containing the current state in the URL hash.
 - Artwork is bundled locally in `assets/`.
 
+## Owner edit mode
+
+This site includes a simple **Owner mode** PIN gate that hides editing controls (teams + reset/shuffle/generate + picking winners) unless unlocked.
+
+- Default PIN is set in `script.js` as `OWNER_PIN`.
+- Unlock status is saved in your browser (localStorage), so you usually only unlock once per device/browser.
+
