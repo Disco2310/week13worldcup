@@ -306,7 +306,7 @@ body{
 }
 .linkBtn:hover{background: rgba(255,255,255,.08)}
 
-/* Winner/loser styling per round */
+/* Winner/loser styling */
 .match .teamBtn.isWinnerPick{
   border-radius: 10px;
   outline: 1px solid rgba(255,255,255,.08);
@@ -317,20 +317,12 @@ body{
   opacity: .9;
 }
 
-.match[data-round="r16"].isWinner{background: linear-gradient(180deg, rgba(245,196,0,.20), rgba(245,196,0,.08));}
-.match[data-round="r16"] .teamBtn.isWinnerPick{background: rgba(245,196,0,.14);}
+.match.isWinner{background: linear-gradient(180deg, rgba(52,211,153,.22), rgba(52,211,153,.09));}
+.match .teamBtn.isWinnerPick{background: rgba(52,211,153,.12);}
+
 .match[data-round="r16"] .teamBtn.isLoser{background: rgba(251,113,133,.10); color: rgba(255,255,255,.86);}
-
-.match[data-round="qf"].isWinner{background: linear-gradient(180deg, rgba(52,211,153,.22), rgba(52,211,153,.09));}
-.match[data-round="qf"] .teamBtn.isWinnerPick{background: rgba(52,211,153,.12);}
 .match[data-round="qf"] .teamBtn.isLoser{background: rgba(251,113,133,.10); color: rgba(255,255,255,.86);}
-
-.match[data-round="sf"].isWinner{background: linear-gradient(180deg, rgba(96,165,250,.22), rgba(96,165,250,.09));}
-.match[data-round="sf"] .teamBtn.isWinnerPick{background: rgba(96,165,250,.12);}
 .match[data-round="sf"] .teamBtn.isLoser{background: rgba(251,113,133,.10); color: rgba(255,255,255,.86);}
-
-.match[data-round="f"].isWinner{background: linear-gradient(180deg, rgba(167,139,250,.22), rgba(167,139,250,.09));}
-.match[data-round="f"] .teamBtn.isWinnerPick{background: rgba(167,139,250,.12);}
 .match[data-round="f"] .teamBtn.isLoser{background: rgba(251,113,133,.10); color: rgba(255,255,255,.86);}
 
 .badge{
