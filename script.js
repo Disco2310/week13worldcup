@@ -358,7 +358,7 @@ function renderRound(dom, state, roundKey, containerEl) {
         btn1.style.outline = "2px solid rgba(52,211,153,.35)";
         statusEl.textContent = "Winner: " + (t1 || "—");
       } else {
-        statusEl.textContent = t0 && t1 ? "Pick winner" : "Waiting for teams";
+        statusEl.textContent = "";
       }
     };
 
