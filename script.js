@@ -124,7 +124,6 @@ function getDOM() {
     btnGenerate: document.getElementById("btnGenerate"),
     btnResetAll: document.getElementById("btnResetAll"),
     btnResetWinners: document.getElementById("btnResetWinners"),
-    btnShare: document.getElementById("btnShare"),
     roundR16: document.getElementById("roundR16"),
     roundQF: document.getElementById("roundQF"),
     roundSF: document.getElementById("roundSF"),
@@ -491,7 +490,7 @@ function applyOwnerModeButton(dom) {
   const unlocked = isOwnerUnlocked();
   if (!dom.btnOwnerMode) return;
 
-  dom.btnOwnerMode.textContent = unlocked ? "Lock edits" : "Owner mode";
+  dom.btnOwnerMode.textContent = unlocked ? "Lock admin" : "Admin";
   dom.btnOwnerMode.title = unlocked ? "Lock and hide editing controls" : "Unlock edit mode";
 }
 
@@ -506,7 +505,7 @@ function wireUI(dom, state) {
         return;
       }
 
-      const pin = window.prompt("Enter owner PIN to unlock edit mode:");
+      const pin = window.prompt("Enter admin PIN to unlock editing:");
       if (pin == null) return;
       if (pin === OWNER_PIN) {
         setOwnerUnlocked(true);
@@ -572,17 +571,6 @@ function wireUI(dom, state) {
     toast("Reset complete.");
   });
 
-  dom.btnShare.addEventListener("click", async () => {
-    const shareState = {
-      teams: state.teams,
-      branding: state.branding,
-      bracket: state.bracket,
-    };
-    const hash = encodeStateToHash(shareState);
-    const url = `${window.location.origin}${window.location.pathname}${hash}`;
-    const ok = await copyText(url);
-    toast(ok ? "Link copied!" : "Could not copy link.");
-  });
 }
 
 function init() {
