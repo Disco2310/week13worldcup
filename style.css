@@ -220,6 +220,20 @@ body{
   .bracket__champ{grid-column: 1 / -1;}
 }
 
+@media (max-width: 720px){
+  .bracket{
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .bracket__champ{grid-column: auto;}
+  .round__header{padding: 0 2px 6px;}
+  .round{gap: 8px;}
+
+  .teamBtn{padding: 10px 10px; min-height: 40px;}
+  .match__vs{padding: 10px 8px;}
+  .match__footer{padding: 8px 10px;}
+}
+
 .round__header{
   display:flex;
   justify-content: space-between;
