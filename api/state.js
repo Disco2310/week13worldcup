@@ -13,6 +13,12 @@ function noStore(res) {
   res.setHeader("Cache-Control", "no-store, max-age=0");
 }
 
+function hasKvConfig() {
+  const url = (process.env.KV_REST_API_URL ?? "").toString().trim();
+  const token = (process.env.KV_REST_API_TOKEN ?? "").toString().trim();
+  return Boolean(url && token);
+}
+
 function getOwnerPinFromRequest(req, body) {
   const headerPin =
     req.headers["x-owner-pin"] ??
@@ -38,13 +44,28 @@ export default async function handler(req, res) {
   noStore(res);
 
   if (req.method === "GET") {
-    const [state, meta] = await kv.mget(KEY, META_KEY);
-    return json(res, 200, {
-      ok: true,
-      state: state ?? null,
-      rev: meta?.rev ?? 0,
-      updatedAt: meta?.updatedAt ?? null,
-    });
+    if (!hasKvConfig()) {
+      return json(res, 500, {
+        ok: false,
+        error: "KV not configured",
+        missing: ["KV_REST_API_URL", "KV_REST_API_TOKEN"],
+      });
+    }
+    try {
+      const [state, meta] = await kv.mget(KEY, META_KEY);
+      return json(res, 200, {
+        ok: true,
+        state: state ?? null,
+        rev: meta?.rev ?? 0,
+        updatedAt: meta?.updatedAt ?? null,
+      });
+    } catch (err) {
+      return json(res, 500, {
+        ok: false,
+        error: "KV read failed",
+        detail: (err && err.message ? err.message : String(err)).slice(0, 500),
+      });
+    }
   }
 
   if (req.method !== "POST") {
@@ -54,6 +75,13 @@ export default async function handler(req, res) {
 
   const ownerPinEnv = (process.env.OWNER_PIN ?? "").toString();
   if (!ownerPinEnv) return json(res, 500, { ok: false, error: "OWNER_PIN not configured" });
+  if (!hasKvConfig()) {
+    return json(res, 500, {
+      ok: false,
+      error: "KV not configured",
+      missing: ["KV_REST_API_URL", "KV_REST_API_TOKEN"],
+    });
+  }
 
   let body;
   try {
@@ -73,7 +101,16 @@ export default async function handler(req, res) {
   if (!state || typeof state !== "object") return json(res, 400, { ok: false, error: "Missing state" });
 
   const incomingRev = Number(body?.rev ?? 0) || 0;
-  const meta = (await kv.get(META_KEY)) ?? { rev: 0, updatedAt: null };
+  let meta;
+  try {
+    meta = (await kv.get(META_KEY)) ?? { rev: 0, updatedAt: null };
+  } catch (err) {
+    return json(res, 500, {
+      ok: false,
+      error: "KV read failed",
+      detail: (err && err.message ? err.message : String(err)).slice(0, 500),
+    });
+  }
   const currentRev = Number(meta?.rev ?? 0) || 0;
 
   // Basic lost-update protection: allow overwrite if client is up-to-date.
@@ -84,15 +121,23 @@ export default async function handler(req, res) {
   const nextRev = currentRev + 1;
   const updatedAt = new Date().toISOString();
 
-  await kv.mset(
-    KEY,
-    state,
-    META_KEY,
-    {
-      rev: nextRev,
-      updatedAt,
-    },
-  );
+  try {
+    await kv.mset(
+      KEY,
+      state,
+      META_KEY,
+      {
+        rev: nextRev,
+        updatedAt,
+      },
+    );
+  } catch (err) {
+    return json(res, 500, {
+      ok: false,
+      error: "KV write failed",
+      detail: (err && err.message ? err.message : String(err)).slice(0, 500),
+    });
+  }
 
   return json(res, 200, { ok: true, rev: nextRev, updatedAt });
 }
