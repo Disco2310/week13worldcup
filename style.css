@@ -340,6 +340,19 @@ body{
   background: linear-gradient(180deg, rgba(245,196,0,.20), rgba(255,221,77,.10));
 }
 
+.bracket__champ .card__header{
+  justify-content: center;
+  text-align: center;
+}
+.bracket__champ .champ__body{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.bracket__champ .champ__actions{
+  justify-content:center;
+}
+
 .champ__body{padding: 16px}
 .champ__actions{display:flex; gap: 10px; margin-top: 12px; flex-wrap:wrap}
 

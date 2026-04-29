@@ -1,0 +1,11 @@
+{
+  "name": "week-13-world-cup",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  }
+}
+
