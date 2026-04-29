@@ -103,6 +103,7 @@ body{
 }
 
 .header__actions{display:flex; gap:10px; flex-wrap:wrap}
+#btnCopyLink{display:none;}
 
 .card{
   background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.045));
