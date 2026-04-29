@@ -1,8 +1,11 @@
 const STORAGE_KEY = "wc16_tracker_v1";
 const OWNER_UNLOCK_KEY = "wc16_owner_unlocked_v1";
 
-// Note: this is not secure security (PIN is in client JS). It prevents casual edits.
-const OWNER_PIN = "01279";
+const SHARED_POLL_MS = 4000;
+let SHARED_REV = 0;
+let OWNER_PIN_SESSION = null;
+let IS_APPLYING_REMOTE = false;
+let SAVE_DEBOUNCE_TIMER = null;
 
 let OWNER_UNLOCKED = false;
 
@@ -64,12 +67,29 @@ function decodeStateFromHash() {
   }
 }
 
-function saveState(state) {
+function saveLocalState(state) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
     // ignore
   }
+}
+
+function scheduleSharedSave(state) {
+  if (IS_APPLYING_REMOTE) return;
+  if (!isOwnerUnlocked()) return;
+  if (!OWNER_PIN_SESSION) return;
+
+  if (SAVE_DEBOUNCE_TIMER) clearTimeout(SAVE_DEBOUNCE_TIMER);
+  SAVE_DEBOUNCE_TIMER = setTimeout(() => {
+    SAVE_DEBOUNCE_TIMER = null;
+    void saveSharedState(state);
+  }, 450);
+}
+
+function saveState(state) {
+  saveLocalState(state);
+  scheduleSharedSave(state);
 }
 
 function loadState() {
@@ -80,6 +100,61 @@ function loadState() {
     return state && typeof state === "object" ? state : null;
   } catch {
     return null;
+  }
+}
+
+async function loadSharedState() {
+  try {
+    const res = await fetch("/api/state", { cache: "no-store" });
+    const data = await res.json();
+    if (!data?.ok) return { state: null, rev: 0 };
+    return { state: data.state ?? null, rev: Number(data.rev ?? 0) || 0 };
+  } catch {
+    return { state: null, rev: 0 };
+  }
+}
+
+async function verifyOwnerPin(pin) {
+  try {
+    const res = await fetch("/api/state", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-owner-pin": pin,
+      },
+      body: JSON.stringify({ op: "verify" }),
+    });
+    const data = await res.json().catch(() => ({}));
+    return Boolean(res.ok && data?.ok);
+  } catch {
+    return false;
+  }
+}
+
+async function saveSharedState(state) {
+  try {
+    const res = await fetch("/api/state", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-owner-pin": OWNER_PIN_SESSION,
+      },
+      body: JSON.stringify({ state, rev: SHARED_REV }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.status === 409) {
+      SHARED_REV = Number(data?.rev ?? SHARED_REV) || SHARED_REV;
+      // We'll re-attempt on next user interaction.
+      return false;
+    }
+
+    if (!res.ok || !data?.ok) return false;
+    SHARED_REV = Number(data.rev ?? SHARED_REV) || SHARED_REV;
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -478,6 +553,7 @@ function isOwnerUnlocked() {
 function setOwnerUnlocked(unlocked) {
   OWNER_UNLOCKED = unlocked;
   document.documentElement.dataset.owner = unlocked ? "1" : "0";
+  if (!unlocked) OWNER_PIN_SESSION = null;
   try {
     if (unlocked) localStorage.setItem(OWNER_UNLOCK_KEY, "1");
     else localStorage.removeItem(OWNER_UNLOCK_KEY);
@@ -508,13 +584,18 @@ function wireUI(dom, state) {
 
       const pin = window.prompt("Enter admin PIN to unlock editing:");
       if (pin == null) return;
-      if (pin === OWNER_PIN) {
+      void (async () => {
+        const ok = await verifyOwnerPin(pin);
+        if (!ok) {
+          toast("Incorrect PIN.");
+          return;
+        }
+        OWNER_PIN_SESSION = pin;
         setOwnerUnlocked(true);
         applyOwnerModeButton(dom);
         toast("Edit mode unlocked.");
-      } else {
-        toast("Incorrect PIN.");
-      }
+        scheduleSharedSave(state);
+      })();
     });
   }
 
@@ -579,27 +660,56 @@ function init() {
   loadOwnerUnlocked();
   applyOwnerModeButton(dom);
 
-  const fromHash = decodeStateFromHash();
-  const fromStorage = loadState();
+  void (async () => {
+    const fromShared = await loadSharedState();
+    SHARED_REV = fromShared.rev;
 
-  const state = coerceState(fromHash || fromStorage);
-  propagate(state);
-  saveState(state);
-
-  wireUI(dom, state);
-  renderAll(dom, state);
-
-  window.addEventListener("hashchange", () => {
-    const incoming = decodeStateFromHash();
-    if (!incoming) return;
-    const next = coerceState(incoming);
-    state.teams = next.teams;
-    state.bracket = next.bracket;
+    const fromHash = decodeStateFromHash();
+    const fromStorage = loadState();
+    const state = coerceState(fromShared.state || fromHash || fromStorage);
     propagate(state);
-    saveState(state);
+    saveLocalState(state);
+
+    wireUI(dom, state);
     renderAll(dom, state);
-    toast("Loaded from link.");
-  });
+
+    // Poll for updates so all viewers converge on the same shared state.
+    setInterval(async () => {
+      if (isOwnerUnlocked()) return;
+      const incoming = await loadSharedState();
+      if (!incoming.state) return;
+      if ((Number(incoming.rev ?? 0) || 0) <= SHARED_REV) return;
+
+      IS_APPLYING_REMOTE = true;
+      try {
+        SHARED_REV = incoming.rev;
+        const next = coerceState(incoming.state);
+        state.teams = next.teams;
+        state.ui = next.ui;
+        state.branding = next.branding;
+        state.bracket = next.bracket;
+        propagate(state);
+        saveLocalState(state);
+        renderAll(dom, state);
+      } finally {
+        IS_APPLYING_REMOTE = false;
+      }
+    }, SHARED_POLL_MS);
+
+    window.addEventListener("hashchange", () => {
+      const incoming = decodeStateFromHash();
+      if (!incoming) return;
+      const next = coerceState(incoming);
+      state.teams = next.teams;
+      state.ui = next.ui;
+      state.branding = next.branding;
+      state.bracket = next.bracket;
+      propagate(state);
+      saveState(state);
+      renderAll(dom, state);
+      toast("Loaded from link.");
+    });
+  })();
 }
 
 document.addEventListener("DOMContentLoaded", init);
