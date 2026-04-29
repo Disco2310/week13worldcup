@@ -7,13 +7,13 @@ const OWNER_PIN = "01279";
 let OWNER_UNLOCKED = false;
 
 const EXAMPLE_TEAMS = [
-  "Algarve",
+  "Hungaroring",
   "Catalunya",
   "Fuji",
   "Hockenheimring",
   "Imola",
   "Knockhill",
-  "Misano",
+  "Interlagos",
   "Monza",
   "Mugello",
   "Bathurst",
