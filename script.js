@@ -538,6 +538,22 @@ function wireUI(dom, state) {
     });
   }
 
+  // Hidden admin control: use the logo as the unlock toggle.
+  if (dom.brandLogo && dom.btnOwnerMode) {
+    dom.brandLogo.tabIndex = 0;
+    dom.brandLogo.setAttribute("role", "button");
+    dom.brandLogo.setAttribute("aria-label", "Admin");
+    dom.brandLogo.title = "Admin";
+
+    dom.brandLogo.addEventListener("click", () => dom.btnOwnerMode.click());
+    dom.brandLogo.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        dom.btnOwnerMode.click();
+      }
+    });
+  }
+
   if (dom.btnCopyLink) {
     dom.btnCopyLink.addEventListener("click", async () => {
       const url = `${window.location.origin}${window.location.pathname}${window.location.search}${encodeStateToHash(state)}`;
